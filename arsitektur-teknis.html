@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>05 · Arsitektur Teknis — PT XXXXX Indonesia</title>
+<meta name="description" content="Arsitektur monorepo dan model data inti platform digital PT XXXXX Indonesia.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+    --bg: #eef2f8;
+    --surface: #ffffff;
+    --border: rgba(23, 49, 94, 0.10);
+    --text: #17233b;
+    --text-dim: #5a6b8c;
+    --primary: #1d5aa8;
+    --primary-dim: rgba(29, 90, 168, 0.08);
+    --secondary: #0e7490;
+    --tertiary: #b45309;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0a1424;
+      --surface: #101d33;
+      --border: rgba(148, 180, 228, 0.12);
+      --text: #dbe6f7;
+      --text-dim: #8ba3c9;
+      --primary: #6ba8e8;
+      --primary-dim: rgba(107, 168, 232, 0.14);
+      --secondary: #4ec3dd;
+      --tertiary: #e8a04c;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background-color: var(--bg);
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 28px 28px;
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+  }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .animate { animation: fadeUp 0.4s ease-out both; animation-delay: calc(var(--i, 0) * 0.06s); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
+  }
+  .topnav {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 12px 24px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 20;
+  }
+  .topnav .brand { font-weight: 700; font-size: 14px; }
+  .topnav .brand span { color: var(--primary); }
+  .topnav a { color: var(--text-dim); text-decoration: none; font-family: var(--font-mono); font-size: 12px; padding: 4px 8px; border-radius: 5px; }
+  .topnav a:hover { background: var(--primary-dim); color: var(--primary); }
+  .topnav a[aria-current="page"] { background: var(--primary-dim); color: var(--primary); font-weight: 500; }
+
+  .container { max-width: 1120px; margin: 0 auto; padding: 44px 24px 64px; }
+  .kicker { font-family: var(--font-mono); font-size: 12px; color: var(--secondary); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+  h1 { font-size: 34px; font-weight: 700; letter-spacing: -1px; margin-bottom: 12px; text-wrap: balance; }
+  h2 { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; margin: 42px 0 6px; }
+  .sub { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); margin-bottom: 16px; }
+  p.prose { font-size: 14.5px; line-height: 1.75; color: var(--text-dim); margin-bottom: 12px; max-width: 800px; }
+  p.prose strong, .aud-box strong { color: var(--text); }
+  p.prose code, .aud-box code, .callout code {
+    font-family: var(--font-mono); font-size: 12px;
+    background: var(--primary-dim); color: var(--primary);
+    padding: 1px 5px; border-radius: 3px;
+  }
+
+  .aud-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin: 16px 0 8px; }
+  .aud-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; min-width: 0; }
+  .aud-box .tag { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; padding: 3px 9px; border-radius: 999px; display: inline-block; margin-bottom: 10px; }
+  .aud-box.umum .tag { border: 1px solid var(--secondary); color: var(--secondary); }
+  .aud-box.teknis .tag { border: 1px solid var(--tertiary); color: var(--tertiary); }
+  .aud-box p, .aud-box li { font-size: 13.5px; line-height: 1.7; color: var(--text-dim); overflow-wrap: break-word; }
+  .aud-box ul { margin: 4px 0 0 18px; }
+  .aud-box li { margin-bottom: 5px; }
+
+  .mermaid-wrap {
+    position: relative; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 32px 24px; overflow: auto; margin-bottom: 20px;
+    display: flex; justify-content: center; align-items: center; min-height: 400px;
+  }
+  .zoom-controls {
+    position: absolute; top: 8px; right: 8px; display: flex; gap: 2px; z-index: 10;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 2px;
+  }
+  .zoom-controls button {
+    width: 28px; height: 28px; border: none; background: transparent; color: var(--text-dim);
+    font-family: var(--font-mono); font-size: 14px; cursor: pointer; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .zoom-controls button:hover { background: var(--border); color: var(--text); }
+  .mermaid-wrap { cursor: grab; }
+  .mermaid-wrap.is-panning { cursor: grabbing; user-select: none; }
+  .diagram-shell { position: relative; }
+  .diagram-shell__hint { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); margin-bottom: 8px; opacity: 0.7; }
+  .mermaid-viewport { position: relative; overflow: hidden; width: 100%; height: 100%; min-height: 300px; }
+  .mermaid-canvas { position: absolute; top: 0; left: 0; }
+  .zoom-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); padding: 0 6px; white-space: nowrap; display: flex; align-items: center; }
+  .mermaid .nodeLabel { font-family: var(--font-body) !important; font-size: 15px !important; }
+  .mermaid .edgeLabel { font-family: var(--font-mono) !important; font-size: 12px !important; }
+  .mermaid .node rect, .mermaid .node circle, .mermaid .node polygon { stroke-width: 1.5px !important; }
+  .mermaid .edge-pattern-solid { stroke-width: 1.5px !important; }
+
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+  .legend-swatch { width: 12px; height: 12px; border-radius: 3px; }
+
+  .callout {
+    background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--primary);
+    border-radius: 0 10px 10px 0; padding: 16px 20px; font-size: 13px; line-height: 1.7;
+    color: var(--text-dim); margin-top: 20px; max-width: 920px;
+  }
+  .callout strong { color: var(--text); }
+  .callout ul { margin: 6px 0 0 18px; }
+  .callout li { margin-bottom: 4px; }
+
+  .pager { display: flex; justify-content: space-between; gap: 12px; margin-top: 36px; flex-wrap: wrap; }
+  .pager a { font-family: var(--font-mono); font-size: 12.5px; color: var(--primary); text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 10px 16px; border-radius: 9px; }
+  .pager a:hover { border-color: var(--primary); }
+
+  @media (max-width: 768px) {
+    h1 { font-size: 25px; }
+    .container { padding: 28px 14px 48px; }
+    .mermaid-wrap { padding: 16px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="brand">PT XXXXX <span>/ Rancangan Umum</span></div>
+  <a href="index.html">Beranda</a>
+  <a href="analisis-pasar.html">01 &middot; Analisis Pasar</a>
+  <a href="kanvas-bisnis.html">02 &middot; Kanvas Bisnis</a>
+  <a href="mindmap-model-bisnis.html">03 &middot; Mindmap</a>
+  <a href="status-modul.html">04 &middot; Status Modul</a>
+  <a href="arsitektur-teknis.html" aria-current="page">05 &middot; Arsitektur</a>
+  <a href="pipeline-pengembangan.html">06 &middot; Pipeline</a>
+</nav>
+
+<div class="container">
+
+  <p class="kicker animate" style="--i:0">05 &middot; Arsitektur Teknis</p>
+  <h1 class="animate" style="--i:1">Satu Fondasi, Banyak Pintu</h1>
+
+  <div class="aud-pair animate" style="--i:2">
+    <div class="aud-box umum">
+      <span class="tag">untuk orang awam</span>
+      <p>Bayangkan sebuah <strong>gudang pusat dengan banyak loket</strong>. Gudangnya satu: semua data produk,
+      stok, harga, dan transaksi tersimpan di satu tempat yang tertib. Loketnya bertambah seiring waktu:
+      tahun pertama hanya loket untuk staf internal; tahun kedua dibuka loket untuk pembeli &amp; vendor
+      (marketplace); menyusul loket mekanik dan rental. Membangun loket baru itu cepat &mdash;
+      karena gudangnya tidak pernah dibangun ulang.</p>
+    </div>
+    <div class="aud-box teknis">
+      <span class="tag">untuk teknisi</span>
+      <p>Monorepo (pnpm + Turborepo) berisi aplikasi Next.js full-stack terpisah <strong>per audiens</strong>
+      (bukan per modul bisnis), berbagi <code>packages/db</code> (schema Drizzle, satu sumber kebenaran)
+      dan <code>packages/core</code> (logika domain murni). Satu PostgreSQL untuk seluruh ekosistem.
+      Aturan dependensi: <code>apps/*</code> &rarr; <code>packages/*</code>, tidak pernah sebaliknya;
+      antar-app tidak saling import. Deploy: VPS + Docker Compose.
+      <strong>Schema database dirancang penuh untuk semua modul sejak hari pertama</strong> (termasuk
+      mekanik &amp; rental); frontend digarap bertahap: SPAREPART, CUSTOMER, VENDOR, INTERNAL dulu.</p>
+    </div>
+  </div>
+
+  <h2>Struktur Monorepo &amp; Alur Dependensi</h2>
+  <p class="sub">garis putus-putus = belum dibangun (Tahun 2+) &mdash; tempatnya sudah disediakan</p>
+
+  <section class="diagram-shell animate" style="--i:3">
+    <p class="diagram-shell__hint">Ctrl/Cmd + scroll untuk zoom. Drag untuk geser. Klik dua kali untuk fit.</p>
+    <div class="mermaid-wrap">
+      <div class="zoom-controls">
+        <button type="button" data-action="zoom-in" title="Perbesar">+</button>
+        <button type="button" data-action="zoom-out" title="Perkecil">&minus;</button>
+        <button type="button" data-action="zoom-fit" title="Fit">&#8634;</button>
+        <button type="button" data-action="zoom-one" title="Zoom 1:1">1:1</button>
+        <button type="button" data-action="zoom-expand" title="Buka ukuran penuh">&#x26F6;</button>
+        <span class="zoom-label">Memuat...</span>
+      </div>
+      <div class="mermaid-viewport">
+        <div class="mermaid mermaid-canvas"></div>
+      </div>
+    </div>
+    <script type="text/plain" class="diagram-source">
+      flowchart TD
+        staf["Staf KMT &amp; PUM<br/>admin &middot; gudang &middot; sales"]
+        publik["Customer &amp; Vendor<br/>(mulai Tahun 2)"]
+
+        subgraph repo["kmt-platform &mdash; monorepo (pnpm + Turborepo)"]
+          ops["apps/ops &mdash; Tahun 1<br/>Aplikasi internal<br/>katalog &middot; stok &middot; penjualan &middot; laporan"]
+          mkt["apps/marketplace &mdash; Tahun 2<br/>Etalase publik<br/>customer &middot; vendor"]
+          core["packages/core<br/>Logika domain murni<br/>aturan stok &middot; harga &middot; pajak"]
+          db["packages/db<br/>Schema Drizzle + migrasi<br/>satu sumber kebenaran"]
+        end
+
+        pg[("PostgreSQL<br/>satu database<br/>KMT + PUM dipisah per baris (entity_id)")]
+        acc["Accounting eksternal<br/>software jadi / manual"]
+
+        staf -->|"Better Auth (internal)"| ops
+        publik -.->|"auth publik terpisah"| mkt
+        ops -->|"import"| core
+        ops -->|"import"| db
+        mkt -.->|"import"| core
+        mkt -.->|"import"| db
+        core -->|"tipe &amp; aturan"| db
+        db ==>|"query &amp; migrasi"| pg
+        ops -->|"ekspor laporan"| acc
+
+        classDef future stroke-dasharray:6 4,opacity:0.7;
+        class mkt,publik future;
+    </script>
+  </section>
+
+  <div class="legend animate" style="--i:4">
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--primary)"></div> Dibangun sekarang (Tahun 1)</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--tertiary)"></div> Garis putus-putus = menyusul (Tahun 2+)</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--secondary)"></div> Di luar sistem (keputusan hybrid)</div>
+  </div>
+
+  <p class="prose">
+    <strong>Mengapa dipecah per audiens, bukan per modul?</strong> Tool internal dan etalase publik punya
+    kebutuhan keamanan, model login, dan irama rilis yang berbeda total. Memisahkan keduanya sejak awal
+    berarti marketplace bisa dirilis dan diperbaiki tanpa pernah mengganggu operasional gudang &mdash;
+    dan sebaliknya. Sementara modul bisnis (sparepart, mekanik, rental) cukup jadi bagian
+    di dalam aplikasi yang tepat, karena semuanya membaca data inti yang sama.
+  </p>
+
+  <h2>Model Data Inti (ERD)</h2>
+  <p class="sub">master dibagi bersama &mdash; transaksi selalu membawa entity_id &mdash; stok adalah ledger append-only</p>
+
+  <div class="aud-pair">
+    <div class="aud-box umum">
+      <span class="tag">untuk orang awam</span>
+      <p>Tiga keputusan penting dalam bahasa sehari-hari:</p>
+      <ul>
+        <li><strong>Satu katalog untuk semua.</strong> Daftar produk adalah milik bersama (aset PT); tapi setiap transaksi jelas tercatat milik CV yang mana &mdash; penting karena keduanya beda aturan pajak.</li>
+        <li><strong>Stok seperti buku tabungan.</strong> Angka stok tidak pernah "ditimpa" &mdash; setiap barang masuk/keluar adalah catatan baru. Kalau angka aneh, riwayatnya selalu bisa ditelusuri.</li>
+        <li><strong>Nomor part alternatif dicatat.</strong> Part yang sama sering punya banyak nomor dari brand berbeda &mdash; database kami tahu mana yang saling cocok. Inilah bekal fitur pencarian marketplace kelak.</li>
+      </ul>
+    </div>
+    <div class="aud-box teknis">
+      <span class="tag">untuk teknisi</span>
+      <ul>
+        <li><code>stock_movements</code> append-only dengan <code>reason</code> + <code>ref_type/ref_id</code>; stok kini = agregat ledger. Reorder point &amp; fast/slow/dead stock = query, bukan subsistem.</li>
+        <li>Semua tabel transaksi membawa <code>entity_id</code> (KMT non-PPN / PUM PPN); master data tanpa <code>entity_id</code>.</li>
+        <li><code>supplier_prices</code> menyimpan histori harga per supplier per produk, multi-currency (IDR/USD/RMB) &mdash; fondasi fitur "vendor darurat" Level 3.</li>
+        <li>Harga jual diinput di baris order (belum perlu price list); faktur pajak &amp; pembukuan formal di luar sistem, tersedia ekspor.</li>
+      </ul>
+    </div>
+  </div>
+
+  <section class="diagram-shell animate" style="--i:5">
+    <p class="diagram-shell__hint">Ctrl/Cmd + scroll untuk zoom. Drag untuk geser. Klik dua kali untuk fit.</p>
+    <div class="mermaid-wrap">
+      <div class="zoom-controls">
+        <button type="button" data-action="zoom-in" title="Perbesar">+</button>
+        <button type="button" data-action="zoom-out" title="Perkecil">&minus;</button>
+        <button type="button" data-action="zoom-fit" title="Fit">&#8634;</button>
+        <button type="button" data-action="zoom-one" title="Zoom 1:1">1:1</button>
+        <button type="button" data-action="zoom-expand" title="Buka ukuran penuh">&#x26F6;</button>
+        <span class="zoom-label">Memuat...</span>
+      </div>
+      <div class="mermaid-viewport">
+        <div class="mermaid mermaid-canvas"></div>
+      </div>
+    </div>
+    <script type="text/plain" class="diagram-source">
+      erDiagram
+        entities {
+          uuid id PK
+          text code "KMT | PUM"
+          text name
+          text tax_regime "non-PPN | PPN"
+        }
+        products {
+          uuid id PK
+          text part_number
+          text name
+          text brand
+          text category
+          text uom "satuan"
+        }
+        product_cross_refs {
+          uuid id PK
+          uuid product_id FK
+          text ref_part_number "nomor alternatif/OEM"
+          text ref_brand
+        }
+        machine_compat {
+          uuid id PK
+          uuid product_id FK
+          text machine_brand "fase berikutnya"
+          text machine_model
+        }
+        suppliers {
+          uuid id PK
+          text name
+          text country "China | lokal"
+          text type "import | lokal"
+        }
+        supplier_prices {
+          uuid id PK
+          uuid supplier_id FK
+          uuid product_id FK
+          numeric price
+          text currency "IDR | USD | RMB"
+          date valid_from "histori harga"
+        }
+        customers {
+          uuid id PK
+          text name
+          text type "end-user | corporate"
+          text contact
+        }
+        warehouses {
+          uuid id PK
+          uuid entity_id FK
+          text name
+        }
+        sales_orders {
+          uuid id PK
+          uuid entity_id FK "pemilik legal"
+          uuid customer_id FK
+          text channel "internal | marketplace"
+          date order_date
+          text status
+          numeric ppn_rate "sesuai entitas"
+          numeric total
+        }
+        sales_order_items {
+          uuid id PK
+          uuid order_id FK
+          uuid product_id FK
+          uuid vendor_listing_id FK "nullable - dipenuhi vendor"
+          numeric qty
+          numeric unit_price "input di baris order"
+        }
+        stock_movements {
+          uuid id PK
+          uuid entity_id FK "pemilik legal"
+          uuid warehouse_id FK
+          uuid product_id FK
+          numeric qty_delta "plus masuk / minus keluar"
+          text reason "terima-PO | penjualan | opname | transfer"
+          text ref_type
+          uuid ref_id "tautan ke dokumen sumber"
+          timestamptz created_at "append-only"
+        }
+        users {
+          uuid id PK
+          text name
+          text role "admin | gudang | sales"
+        }
+
+        entities ||--o{ warehouses : "memiliki"
+        entities ||--o{ sales_orders : "pemilik legal"
+        entities ||--o{ stock_movements : "pemilik legal"
+        products ||--o{ product_cross_refs : "punya alternatif"
+        products ||--o{ machine_compat : "cocok untuk unit"
+        products ||--o{ supplier_prices : "ditawarkan pada"
+        suppliers ||--o{ supplier_prices : "menawarkan"
+        customers ||--o{ sales_orders : "memesan"
+        sales_orders ||--|{ sales_order_items : "berisi"
+        products ||--o{ sales_order_items : "terjual sebagai"
+        warehouses ||--o{ stock_movements : "lokasi gerak"
+        products ||--o{ stock_movements : "bergerak"
+        sales_order_items ||--o{ stock_movements : "memicu stok keluar"
+    </script>
+  </section>
+
+  <h2>Perluasan Skema: Semua Modul Diwadahi Sejak Awal</h2>
+  <p class="sub">tabel modul CUSTOMER &middot; VENDOR &middot; MEKANIK &middot; RENTAL &mdash; schema dibuat sekarang, frontend menyusul sesuai prioritas</p>
+
+  <p class="prose">
+    Diagram berikut melengkapi ERD inti di atas. Tabel-tabel ini dibuat di migrasi awal
+    supaya tidak ada perombakan struktur di tengah jalan: modul prioritas (SPAREPART, CUSTOMER,
+    VENDOR, INTERNAL) langsung memakainya, sedangkan tabel mekanik dan rental menunggu frontend-nya
+    tanpa mengganggu apa pun. Titik sambungnya ke ERD inti: <code>customers</code>, <code>products</code>,
+    dan <code>entities</code>.
+  </p>
+
+  <section class="diagram-shell animate" style="--i:6">
+    <p class="diagram-shell__hint">Ctrl/Cmd + scroll untuk zoom. Drag untuk geser. Klik dua kali untuk fit.</p>
+    <div class="mermaid-wrap">
+      <div class="zoom-controls">
+        <button type="button" data-action="zoom-in" title="Perbesar">+</button>
+        <button type="button" data-action="zoom-out" title="Perkecil">&minus;</button>
+        <button type="button" data-action="zoom-fit" title="Fit">&#8634;</button>
+        <button type="button" data-action="zoom-one" title="Zoom 1:1">1:1</button>
+        <button type="button" data-action="zoom-expand" title="Buka ukuran penuh">&#x26F6;</button>
+        <span class="zoom-label">Memuat...</span>
+      </div>
+      <div class="mermaid-viewport">
+        <div class="mermaid mermaid-canvas"></div>
+      </div>
+    </div>
+    <script type="text/plain" class="diagram-source">
+      erDiagram
+        customers {
+          uuid id PK
+          text name "tabel inti (lihat ERD atas)"
+        }
+        products {
+          uuid id PK
+          text part_number "tabel inti (lihat ERD atas)"
+        }
+        customer_accounts {
+          uuid id PK
+          uuid customer_id FK
+          text email "auth publik marketplace"
+          text status
+        }
+        customer_units {
+          uuid id PK
+          uuid customer_id FK
+          text machine_brand
+          text machine_model
+          text serial_no "riwayat servis per unit"
+        }
+        vendors {
+          uuid id PK
+          text name
+          text type "distributor | bengkel | rental"
+          text status "pending | aktif | ditangguhkan"
+        }
+        vendor_listings {
+          uuid id PK
+          uuid vendor_id FK
+          uuid product_id FK
+          numeric price
+          numeric stock_qty "stok milik vendor"
+          text status
+        }
+        technicians {
+          uuid id PK
+          text name
+          text skills "FE modul mekanik menyusul"
+          text status
+        }
+        service_bookings {
+          uuid id PK
+          uuid customer_id FK
+          uuid customer_unit_id FK
+          uuid technician_id FK
+          timestamptz scheduled_at
+          numeric estimate_cost
+          text status
+        }
+        rental_units {
+          uuid id PK
+          text owner_type "entity | vendor"
+          uuid owner_id
+          text machine_brand
+          text machine_model
+          numeric daily_rate
+          text status "FE modul rental menyusul"
+        }
+        rental_bookings {
+          uuid id PK
+          uuid rental_unit_id FK
+          uuid customer_id FK
+          date start_date
+          date end_date
+          text status
+        }
+        payments {
+          uuid id PK
+          text ref_type "order | service | rental"
+          uuid ref_id
+          numeric amount
+          text method
+          text status
+        }
+
+        customers ||--o{ customer_accounts : "login publik"
+        customers ||--o{ customer_units : "memiliki armada"
+        vendors ||--o{ vendor_listings : "menjual"
+        products ||--o{ vendor_listings : "dilisting"
+        customers ||--o{ service_bookings : "memesan servis"
+        customer_units ||--o{ service_bookings : "unit yang diservis"
+        technicians ||--o{ service_bookings : "ditugaskan"
+        rental_units ||--o{ rental_bookings : "disewa lewat"
+        customers ||--o{ rental_bookings : "menyewa"
+    </script>
+  </section>
+
+  <div class="callout animate" style="--i:7">
+    <strong>Keputusan yang sudah dikunci di halaman ini:</strong>
+    <ul>
+      <li>Monorepo Next.js full-stack; aplikasi dipisah per audiens; satu PostgreSQL; Drizzle; Better Auth; VPS + Docker Compose.</li>
+      <li>Master bersama, transaksi bertuan (<code>entity_id</code>); stok = ledger append-only; accounting formal di luar sistem (hybrid).</li>
+      <li><strong>Schema database mencakup semua modul sejak migrasi awal</strong>; <code>sales_orders</code> membawa kolom <code>channel</code> (internal | marketplace) dan baris order bisa dipenuhi stok CV atau listing vendor.</li>
+      <li>Frontend bertahap: SPAREPART, CUSTOMER, VENDOR, INTERNAL dulu; MEKANIK &amp; RENTAL menyusul dari backlog terencana (lihat halaman Pipeline).</li>
+      <li>Logika yang dipakai lintas modul ditulis di <code>packages/core</code> sejak hari pertama.</li>
+    </ul>
+  </div>
+
+  <div class="pager">
+    <a href="status-modul.html">&larr; 04 &middot; Status Modul</a>
+    <a href="pipeline-pengembangan.html">Lanjut: 06 &middot; Pipeline Pengembangan &rarr;</a>
+  </div>
+
+</div>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  import elkLayouts from 'https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk/dist/mermaid-layout-elk.esm.min.mjs';
+
+  const config = {
+    fitPadding: 28, minHeight: 360, maxHeightPx: 960, maxHeightVh: 0.84,
+    maxInitialZoom: 1.8, minZoom: 0.08, maxZoom: 6.5, zoomStep: 0.14, readabilityFloor: 0.58
+  };
+  const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+  let activeDrag = null;
+  addEventListener('mousemove', (e) => activeDrag?.onMove(e));
+  addEventListener('mouseup', () => { activeDrag?.onEnd(); activeDrag = null; });
+
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+
+  mermaid.registerLayoutLoaders(elkLayouts);
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    look: 'classic',
+    layout: 'elk',
+    themeVariables: {
+      fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
+      fontSize: '15px',
+      primaryColor: isDark ? '#16335e' : '#dbe9fb',
+      primaryBorderColor: isDark ? '#6ba8e8' : '#1d5aa8',
+      primaryTextColor: isDark ? '#dbe6f7' : '#17233b',
+      secondaryColor: isDark ? '#0c3a47' : '#dff5f9',
+      secondaryBorderColor: isDark ? '#4ec3dd' : '#0e7490',
+      secondaryTextColor: isDark ? '#dbe6f7' : '#17233b',
+      tertiaryColor: isDark ? '#3a2a12' : '#fdf3e3',
+      tertiaryBorderColor: isDark ? '#e8a04c' : '#b45309',
+      tertiaryTextColor: isDark ? '#dbe6f7' : '#17233b',
+      lineColor: isDark ? '#8ba3c9' : '#5a6b8c',
+      noteBkgColor: isDark ? '#16335e' : '#fdf3e3',
+      noteTextColor: isDark ? '#dbe6f7' : '#17233b',
+      noteBorderColor: isDark ? '#e8a04c' : '#b45309',
+      attributeBackgroundColorEven: isDark ? '#101d33' : '#f4f8fd',
+      attributeBackgroundColorOdd: isDark ? '#0a1424' : '#ffffff'
+    }
+  });
+
+  function initDiagram(shell) {
+    const wrap = shell.querySelector('.mermaid-wrap');
+    const viewport = shell.querySelector('.mermaid-viewport');
+    const canvas = shell.querySelector('.mermaid-canvas');
+    const source = shell.querySelector('.diagram-source');
+    const label = shell.querySelector('.zoom-label');
+    if (!wrap || !viewport || !canvas || !source || !label) { console.error('initDiagram: missing elements', shell); return; }
+
+    let zoom = 1, fitMode = 'contain', panX = 0, panY = 0, svgW = 0, svgH = 0;
+    let sx = 0, sy = 0, spx = 0, spy = 0;
+    let touchDist = 0, touchCx = 0, touchCy = 0;
+
+    function constrainPan() {
+      const vpW = viewport.clientWidth, vpH = viewport.clientHeight;
+      const rW = svgW * zoom, rH = svgH * zoom, pad = config.fitPadding;
+      panX = (rW + pad * 2 <= vpW) ? (vpW - rW) / 2 : clamp(panX, vpW - rW - pad, pad);
+      panY = (rH + pad * 2 <= vpH) ? (vpH - rH) / 2 : clamp(panY, vpH - rH - pad, pad);
+    }
+    function applyTransform() {
+      const svg = canvas.querySelector('svg');
+      if (!svg || !svgW) return;
+      constrainPan();
+      svg.style.width = (svgW * zoom) + 'px';
+      svg.style.height = (svgH * zoom) + 'px';
+      canvas.style.transform = `translate(${panX}px, ${panY}px)`;
+      label.textContent = Math.round(zoom * 100) + '% — ' + fitMode;
+    }
+    function canPan() {
+      return svgW * zoom + config.fitPadding * 2 > viewport.clientWidth
+          || svgH * zoom + config.fitPadding * 2 > viewport.clientHeight;
+    }
+    function computeSmartFit() {
+      const vpW = viewport.clientWidth, vpH = viewport.clientHeight;
+      const aW = Math.max(80, vpW - config.fitPadding * 2);
+      const aH = Math.max(80, vpH - config.fitPadding * 2);
+      const contain = Math.min(aW / svgW, aH / svgH);
+      let z = contain, mode = 'contain';
+      if (contain < config.readabilityFloor) {
+        const chartR = svgH / svgW, vpR = vpH / Math.max(vpW, 1);
+        if (chartR >= vpR) { z = aW / svgW; mode = 'width-priority'; }
+        else { z = aH / svgH; mode = 'height-priority'; }
+      }
+      return { zoom: clamp(z, config.minZoom, config.maxInitialZoom), mode };
+    }
+    function fitDiagram() {
+      if (!svgW) return;
+      const fit = computeSmartFit();
+      zoom = fit.zoom; fitMode = fit.mode;
+      panX = (viewport.clientWidth - svgW * zoom) / 2;
+      panY = (viewport.clientHeight - svgH * zoom) / 2;
+      applyTransform();
+    }
+    function setOneToOne() {
+      zoom = clamp(1, config.minZoom, config.maxZoom); fitMode = '1:1';
+      panX = (viewport.clientWidth - svgW * zoom) / 2;
+      panY = (viewport.clientHeight - svgH * zoom) / 2;
+      applyTransform();
+    }
+    function zoomAround(factor, cx, cy) {
+      const next = clamp(zoom * factor, config.minZoom, config.maxZoom);
+      const ratio = next / zoom;
+      panX = cx - ratio * (cx - panX);
+      panY = cy - ratio * (cy - panY);
+      zoom = next; fitMode = 'custom';
+      applyTransform();
+    }
+    function readSvgNaturalSize(svg) {
+      let w = 0, h = 0;
+      if (svg.viewBox?.baseVal?.width > 0) { w = svg.viewBox.baseVal.width; h = svg.viewBox.baseVal.height; }
+      if (!w) { w = parseFloat(svg.getAttribute('width')) || 0; h = parseFloat(svg.getAttribute('height')) || 0; }
+      if (!w) { const b = svg.getBBox(); w = b.width; h = b.height; }
+      if (!w) { const r = svg.getBoundingClientRect(); w = r.width || 1000; h = r.height || 700; }
+      if (!svg.getAttribute('viewBox')) svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      return { w, h };
+    }
+    function setAdaptiveHeight() {
+      if (!svgW) return;
+      const usableW = Math.max(280, wrap.getBoundingClientRect().width - 2);
+      const idealH = (svgH / svgW) * usableW + config.fitPadding * 2;
+      const maxVp = Math.floor(innerHeight * config.maxHeightVh);
+      const hardMax = Math.min(config.maxHeightPx, Math.max(config.minHeight + 40, maxVp));
+      wrap.style.height = Math.round(clamp(idealH, config.minHeight, hardMax)) + 'px';
+    }
+    function openInNewTab() {
+      const svg = canvas.querySelector('svg');
+      if (!svg) return;
+      const clone = svg.cloneNode(true);
+      clone.style.width = ''; clone.style.height = '';
+      const bg = isDark ? '#0a1424' : '#eef2f8';
+      const html = `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Diagram</title><style>
+      body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+      background:${bg};padding:40px;box-sizing:border-box}
+      svg{max-width:100%;max-height:90vh;height:auto}
+      </style></head><body>${clone.outerHTML}</body></html>`;
+      open(URL.createObjectURL(new Blob([html], { type: 'text/html' })), '_blank');
+    }
+    async function render() {
+      try {
+        const code = source.textContent.trim();
+        if (!code) { label.textContent = 'Error: Empty source'; return; }
+        const id = 'diagram-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+        const { svg } = await mermaid.render(id, code);
+        const parsed = new DOMParser().parseFromString(svg, 'text/html');
+        const parsedSvg = parsed.body.querySelector('svg');
+        if (!parsedSvg) { label.textContent = 'Error: No SVG'; return; }
+        canvas.replaceChildren(document.adoptNode(parsedSvg));
+        const svgNode = canvas.querySelector('svg');
+        if (!svgNode) { label.textContent = 'Error: No SVG'; return; }
+        const size = readSvgNaturalSize(svgNode);
+        svgW = size.w; svgH = size.h;
+        svgNode.removeAttribute('width');
+        svgNode.removeAttribute('height');
+        svgNode.style.maxWidth = 'none';
+        svgNode.style.display = 'block';
+        setAdaptiveHeight();
+        fitDiagram();
+      } catch (err) {
+        console.error('Mermaid render failed:', err);
+        label.textContent = 'Error: ' + (err.message || 'Render failed');
+      }
+    }
+
+    const actions = {
+      'zoom-in': () => zoomAround(1 + config.zoomStep, viewport.clientWidth / 2, viewport.clientHeight / 2),
+      'zoom-out': () => zoomAround(1 / (1 + config.zoomStep), viewport.clientWidth / 2, viewport.clientHeight / 2),
+      'zoom-fit': fitDiagram,
+      'zoom-one': setOneToOne,
+      'zoom-expand': openInNewTab
+    };
+    Object.entries(actions).forEach(([action, handler]) => {
+      wrap.querySelector(`[data-action="${action}"]`)?.addEventListener('click', handler);
+    });
+    viewport.addEventListener('dblclick', fitDiagram);
+    viewport.addEventListener('wheel', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const rect = viewport.getBoundingClientRect();
+        const factor = e.deltaY < 0 ? 1 + config.zoomStep : 1 / (1 + config.zoomStep);
+        zoomAround(factor, e.clientX - rect.left, e.clientY - rect.top);
+        return;
+      }
+      if (canPan()) { e.preventDefault(); panX -= e.deltaX; panY -= e.deltaY; applyTransform(); }
+    }, { passive: false });
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.zoom-controls') || !canPan()) return;
+      wrap.classList.add('is-panning');
+      sx = e.clientX; sy = e.clientY; spx = panX; spy = panY;
+      e.preventDefault();
+      activeDrag = {
+        onMove: (ev) => { panX = spx + (ev.clientX - sx); panY = spy + (ev.clientY - sy); applyTransform(); },
+        onEnd: () => { wrap.classList.remove('is-panning'); }
+      };
+    });
+    viewport.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; spx = panX; spy = panY; }
+      else if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        touchDist = Math.sqrt(dx * dx + dy * dy);
+        const r = viewport.getBoundingClientRect();
+        touchCx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left;
+        touchCy = (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top;
+      }
+    }, { passive: true });
+    viewport.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1 && canPan()) {
+        if (touchDist > 0) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; spx = panX; spy = panY; touchDist = 0; }
+        e.preventDefault();
+        panX = spx + (e.touches[0].clientX - sx);
+        panY = spy + (e.touches[0].clientY - sy);
+        applyTransform();
+      } else if (e.touches.length === 2 && touchDist > 0) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        zoomAround(d / touchDist, touchCx, touchCy);
+        touchDist = d;
+      }
+    }, { passive: false });
+    new ResizeObserver(() => { if (svgW) { setAdaptiveHeight(); fitDiagram(); } }).observe(wrap);
+    render();
+  }
+
+  document.querySelectorAll('.diagram-shell').forEach(initDiagram);
+</script>
+
+</body>
+</html>

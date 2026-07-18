@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>04 · Status Modul — PT XXXXX Indonesia</title>
+<meta name="description" content="Peta status tujuh modul platform PT XXXXX: mana yang wajib selesai dulu, mana yang tersimpan sebagai backlog terencana.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+    --font-display: 'IBM Plex Sans Condensed', 'IBM Plex Sans', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+    --bg: #eef2f8;
+    --surface: #ffffff;
+    --border: rgba(23, 49, 94, 0.10);
+    --text: #17233b;
+    --text-dim: #5a6b8c;
+    --primary: #1d5aa8;
+    --primary-dim: rgba(29, 90, 168, 0.08);
+    --secondary: #0e7490;
+    --secondary-dim: rgba(14, 116, 144, 0.08);
+    --tertiary: #b45309;
+    --tertiary-dim: rgba(180, 83, 9, 0.10);
+    --good: #0ca30c;
+    --good-dim: rgba(12, 163, 12, 0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0a1424;
+      --surface: #101d33;
+      --border: rgba(148, 180, 228, 0.12);
+      --text: #dbe6f7;
+      --text-dim: #8ba3c9;
+      --primary: #6ba8e8;
+      --primary-dim: rgba(107, 168, 232, 0.14);
+      --secondary: #4ec3dd;
+      --secondary-dim: rgba(78, 195, 221, 0.10);
+      --tertiary: #e8a04c;
+      --tertiary-dim: rgba(232, 160, 76, 0.12);
+      --good: #4fd66a;
+      --good-dim: rgba(79, 214, 106, 0.12);
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background-color: var(--bg);
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 28px 28px;
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+  }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .animate { animation: fadeUp 0.4s ease-out both; animation-delay: calc(var(--i, 0) * 0.06s); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
+  }
+  .topnav {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 12px 24px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 20;
+  }
+  .topnav .brand { font-weight: 700; font-size: 14px; }
+  .topnav .brand span { color: var(--primary); }
+  .topnav a { color: var(--text-dim); text-decoration: none; font-family: var(--font-mono); font-size: 12px; padding: 4px 8px; border-radius: 5px; }
+  .topnav a:hover { background: var(--primary-dim); color: var(--primary); }
+  .topnav a[aria-current="page"] { background: var(--primary-dim); color: var(--primary); font-weight: 500; }
+
+  .container { max-width: 1080px; margin: 0 auto; padding: 44px 24px 64px; }
+
+  .kicker {
+    font-family: var(--font-mono); font-size: 12px; color: var(--secondary);
+    letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .kicker::after { content: ''; flex: 1; max-width: 120px; height: 1px; background: var(--secondary); opacity: 0.5; }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 5vw, 46px); font-weight: 700; letter-spacing: -1.1px; line-height: 1.08;
+    margin-bottom: 14px; text-wrap: balance;
+  }
+  h1 .hl { box-shadow: inset 0 -0.32em 0 0 rgba(237, 161, 0, 0.32); }
+
+  h2 {
+    font-family: var(--font-display);
+    font-size: clamp(20px, 2.8vw, 25px); font-weight: 700; letter-spacing: -0.4px;
+    margin: 46px 0 10px;
+  }
+
+  p.prose { font-size: 15px; line-height: 1.75; color: var(--text-dim); margin-bottom: 12px; max-width: 780px; }
+  p.prose strong { color: var(--text); }
+  .sub { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); margin-bottom: 18px; }
+
+  /* ============ QUICK-READ BADGES ============ */
+  .quickread { display: flex; gap: 14px; flex-wrap: wrap; margin: 20px 0 8px; }
+  .qr-pill {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
+    padding: 8px 18px 8px 8px; font-size: 13px;
+  }
+  .qr-pill .dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 700; font-size: 12px; flex: none; }
+  .qr-pill.a .dot { background: var(--primary); color: #fff; }
+  .qr-pill.b .dot { background: var(--tertiary-dim); color: var(--tertiary); border: 1.5px dashed var(--tertiary); }
+  .qr-pill strong { color: var(--text); }
+  .qr-pill span.d { color: var(--text-dim); }
+
+  /* ============ LANES ============ */
+  .lane-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 20px; margin: 22px 0 8px; align-items: start; }
+  .lane {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 24px 26px; min-width: 0;
+  }
+  .lane-a { border-top: 4px solid var(--primary); }
+  .lane-b { border-top: 4px dashed var(--tertiary); }
+  .lane-head { margin-bottom: 6px; }
+  .lane-eyebrow { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; }
+  .lane-a .lane-eyebrow { color: var(--primary); }
+  .lane-b .lane-eyebrow { color: var(--tertiary); }
+  .lane-title { font-family: var(--font-display); font-size: 21px; font-weight: 700; letter-spacing: -0.3px; margin: 2px 0 4px; }
+  .lane-sub { font-size: 13px; color: var(--text-dim); line-height: 1.6; margin-bottom: 16px; }
+
+  .modcard { display: flex; gap: 14px; padding: 13px 0; border-bottom: 1px solid var(--border); }
+  .modcard:last-child { border-bottom: none; padding-bottom: 2px; }
+  .modcard .modnum {
+    flex: none; width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-weight: 700; font-size: 13px;
+  }
+  .lane-a .modnum { background: var(--primary-dim); color: var(--primary); }
+  .lane-b .modnum { background: var(--tertiary-dim); color: var(--tertiary); }
+  .modcard .modbody { min-width: 0; }
+  .modcard h4 { font-size: 14.5px; font-weight: 700; margin-bottom: 3px; }
+  .modcard .modtag {
+    font-family: var(--font-mono); font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 2px 7px; border-radius: 999px; margin-left: 8px; vertical-align: 1px;
+  }
+  .lane-a .modtag { background: var(--good-dim); color: var(--good); }
+  .lane-b .modtag { background: var(--tertiary-dim); color: var(--tertiary); }
+  .modcard p { font-size: 12.8px; line-height: 1.6; color: var(--text-dim); overflow-wrap: break-word; }
+
+  /* ============ STATUS TABLE ============ */
+  .table-scroll { overflow-x: auto; margin: 8px 0 4px; border-radius: 14px; border: 1px solid var(--border); }
+  table.status {
+    border-collapse: collapse; width: 100%; min-width: 880px;
+    background: var(--surface); font-size: 13px;
+  }
+  table.status th, table.status td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.status thead th {
+    font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--text-dim); background: var(--primary-dim); font-weight: 600;
+  }
+  table.status tbody tr:last-child td { border-bottom: none; }
+  table.status td.modname { font-weight: 700; color: var(--text); white-space: nowrap; }
+  table.status td .subtext { display: block; font-size: 11.5px; color: var(--text-dim); margin-top: 2px; font-weight: 400; }
+  .status-chip {
+    display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono);
+    font-size: 11px; padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+  }
+  .status-chip.ready { background: var(--good-dim); color: var(--good); }
+  .status-chip.wait { background: var(--tertiary-dim); color: var(--tertiary); }
+  .status-chip.now { background: var(--primary-dim); color: var(--primary); }
+  tr.row-b { background: color-mix(in srgb, var(--tertiary-dim) 35%, transparent); }
+
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin: 14px 0 6px; }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); }
+  .legend-swatch { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+
+  .callout {
+    background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--primary);
+    border-radius: 0 10px 10px 0; padding: 16px 20px; font-size: 13.5px; line-height: 1.7;
+    color: var(--text-dim); margin: 20px 0; max-width: 880px;
+  }
+  .callout strong { color: var(--text); }
+  .callout code { font-family: var(--font-mono); font-size: 12px; background: var(--primary-dim); color: var(--primary); padding: 1px 5px; border-radius: 3px; }
+  .callout ul { margin: 6px 0 0 18px; }
+  .callout li { margin-bottom: 4px; }
+
+  .pager { display: flex; justify-content: space-between; gap: 12px; margin-top: 36px; flex-wrap: wrap; }
+  .pager a { font-family: var(--font-mono); font-size: 12.5px; color: var(--primary); text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 10px 16px; border-radius: 9px; }
+  .pager a:hover { border-color: var(--primary); }
+
+  footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); line-height: 1.8; }
+
+  @media (max-width: 768px) {
+    .container { padding: 28px 14px 48px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="brand">PT XXXXX <span>/ Rancangan Umum</span></div>
+  <a href="index.html">Beranda</a>
+  <a href="analisis-pasar.html">01 &middot; Analisis Pasar</a>
+  <a href="kanvas-bisnis.html">02 &middot; Kanvas Bisnis</a>
+  <a href="mindmap-model-bisnis.html">03 &middot; Mindmap</a>
+  <a href="status-modul.html" aria-current="page">04 &middot; Status Modul</a>
+  <a href="arsitektur-teknis.html">05 &middot; Arsitektur</a>
+  <a href="pipeline-pengembangan.html">06 &middot; Pipeline</a>
+</nav>
+
+<div class="container">
+
+  <p class="kicker animate" style="--i:0">04 &middot; Status Modul</p>
+  <h1 class="animate" style="--i:1">Tujuh Modul, Satu Pertanyaan:<br><span class="hl">Mana yang Dikerjakan Dulu?</span></h1>
+  <p class="prose animate" style="--i:2">
+    Database dirancang penuh untuk ketujuh modul sejak hari pertama. Yang bertahap adalah
+    <strong>frontend</strong> &mdash; tampilan dan alur yang dipakai pengguna. Halaman ini menjawab
+    satu pertanyaan secara langsung: modul mana yang wajib selesai lebih dulu, dan modul mana yang
+    tabelnya sudah menunggu di database tapi sengaja belum disentuh.
+  </p>
+
+  <div class="quickread animate" style="--i:3">
+    <div class="qr-pill a"><span class="dot">A</span> <span><strong>4 modul prioritas</strong> <span class="d">&mdash; wajib jalan dulu</span></span></div>
+    <div class="qr-pill b"><span class="dot">B</span> <span><strong>3 modul backlog</strong> <span class="d">&mdash; tabel siap, frontend menyusul</span></span></div>
+  </div>
+
+  <h2 class="animate" style="--i:4">Dua Jalur Kerja</h2>
+  <p class="sub">urutan di dalam Gelombang A bersifat wajib &mdash; setiap modul menumpang data modul sebelumnya</p>
+
+  <div class="lane-grid animate" style="--i:5">
+
+    <div class="lane lane-a">
+      <div class="lane-head">
+        <span class="lane-eyebrow">Gelombang A &middot; Prioritas</span>
+        <div class="lane-title">Wajib Selesai Dulu</div>
+        <p class="lane-sub">Empat modul ini dikerjakan berurutan. Yang kedua tidak dimulai sebelum yang pertama stabil dan dipakai transaksi nyata.</p>
+      </div>
+
+      <div class="modcard">
+        <div class="modnum">1</div>
+        <div class="modbody">
+          <h4>INTERNAL <span class="modtag">mulai duluan</span></h4>
+          <p>Katalog part, ledger stok, penjualan per entitas (KMT/PUM), purchasing &amp; supplier. Sumber data untuk seluruh modul lain.</p>
+        </div>
+      </div>
+      <div class="modcard">
+        <div class="modnum">2</div>
+        <div class="modbody">
+          <h4>SPAREPART</h4>
+          <p>Etalase publik: pencarian part lewat nomor alternatif, harga &amp; stok real-time, checkout marketplace.</p>
+        </div>
+      </div>
+      <div class="modcard">
+        <div class="modnum">3</div>
+        <div class="modbody">
+          <h4>CUSTOMER</h4>
+          <p>Akun publik, riwayat beli &amp; servis, data armada unit pelanggan, invoice dan garansi.</p>
+        </div>
+      </div>
+      <div class="modcard">
+        <div class="modnum">4</div>
+        <div class="modbody">
+          <h4>VENDOR <span class="modtag">penutup A</span></h4>
+          <p>Onboarding distributor &amp; supplier lokal, listing produk yang menempel katalog pusat, dashboard penjualan vendor.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="lane lane-b">
+      <div class="lane-head">
+        <span class="lane-eyebrow">Gelombang B &middot; Backlog Terencana</span>
+        <div class="lane-title">Tabelnya Sudah Ada, Frontend Menunggu</div>
+        <p class="lane-sub">Bukan diabaikan &mdash; sengaja ditunda. Schema database sudah dimigrasi di fondasi supaya tidak ada perombakan struktur nanti.</p>
+      </div>
+
+      <div class="modcard">
+        <div class="modnum">5</div>
+        <div class="modbody">
+          <h4>MEKANIK <span class="modtag">DB siap</span></h4>
+          <p>Booking teknisi, jadwal, tracking, estimasi biaya. Menunggu gerbang kualitas Gelombang A dan permintaan servis nyata.</p>
+        </div>
+      </div>
+      <div class="modcard">
+        <div class="modnum">6</div>
+        <div class="modbody">
+          <h4>RENTAL <span class="modtag">DB siap</span></h4>
+          <p>Listing unit alat berat, kalender ketersediaan, GPS, pembayaran sewa. Menunggu permintaan sewa nyata dari pelanggan platform.</p>
+        </div>
+      </div>
+      <div class="modcard">
+        <div class="modnum">7</div>
+        <div class="modbody">
+          <h4>KEMITRAAN <span class="modtag">DB siap</span></h4>
+          <p>Financing, asuransi, logistik &mdash; lapisan komisi di atas transaksi yang sudah berjalan. Menunggu volume dan mitra konkret.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <h2>Peta Status Lengkap</h2>
+  <p class="sub">satu tabel, semua modul &mdash; skema database vs backend inti vs frontend, per modul</p>
+
+  <div class="table-scroll animate" style="--i:6">
+    <table class="status">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Modul</th>
+          <th>Gelombang</th>
+          <th>Fokus utama</th>
+          <th>Skema database</th>
+          <th>Frontend</th>
+          <th>Pemicu berikutnya</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td class="modname">INTERNAL</td>
+          <td><span class="status-chip now">A &middot; prioritas 1</span></td>
+          <td>Katalog, ledger stok, penjualan, purchasing dua CV</td>
+          <td><span class="status-chip ready">Termigrasi di fondasi</span></td>
+          <td><span class="status-chip now">Dikerjakan pertama</span></td>
+          <td>&mdash;</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td class="modname">SPAREPART</td>
+          <td><span class="status-chip now">A &middot; prioritas 2</span></td>
+          <td>Etalase publik &amp; pencarian part<span class="subtext">pakai tabel produk yang sama dengan INTERNAL</span></td>
+          <td><span class="status-chip ready">Termigrasi di fondasi</span></td>
+          <td><span class="status-chip now">Menyusul setelah INTERNAL stabil</span></td>
+          <td>&mdash;</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td class="modname">CUSTOMER</td>
+          <td><span class="status-chip now">A &middot; prioritas 3</span></td>
+          <td>Akun, riwayat, armada unit, invoice</td>
+          <td><span class="status-chip ready">Termigrasi di fondasi</span></td>
+          <td><span class="status-chip now">Menyusul setelah SPAREPART</span></td>
+          <td>&mdash;</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td class="modname">VENDOR</td>
+          <td><span class="status-chip now">A &middot; prioritas 4</span></td>
+          <td>Onboarding, listing, dashboard vendor</td>
+          <td><span class="status-chip ready">Termigrasi di fondasi</span></td>
+          <td><span class="status-chip now">Penutup Gelombang A</span></td>
+          <td>Gerbang kualitas A</td>
+        </tr>
+        <tr class="row-b">
+          <td>5</td>
+          <td class="modname">MEKANIK</td>
+          <td><span class="status-chip wait">B &middot; backlog</span></td>
+          <td>Booking teknisi, jadwal, tracking<span class="subtext">target ilustratif: 500 teknisi</span></td>
+          <td><span class="status-chip ready">Disiapkan di fondasi, belum dipakai</span></td>
+          <td><span class="status-chip wait">Belum dimulai</span></td>
+          <td>Gerbang A lolos + permintaan booking servis nyata</td>
+        </tr>
+        <tr class="row-b">
+          <td>6</td>
+          <td class="modname">RENTAL</td>
+          <td><span class="status-chip wait">B &middot; backlog</span></td>
+          <td>Listing unit, kalender, GPS<span class="subtext">target ilustratif: 1.000 unit</span></td>
+          <td><span class="status-chip ready">Disiapkan di fondasi, belum dipakai</span></td>
+          <td><span class="status-chip wait">Belum dimulai</span></td>
+          <td>Gerbang A lolos + permintaan sewa nyata</td>
+        </tr>
+        <tr class="row-b">
+          <td>7</td>
+          <td class="modname">KEMITRAAN</td>
+          <td><span class="status-chip wait">B &middot; backlog</span></td>
+          <td>Financing, asuransi, logistik<span class="subtext">lapisan komisi, bukan modul berdiri sendiri</span></td>
+          <td><span class="status-chip ready">Tabel payments generik sudah ada</span></td>
+          <td><span class="status-chip wait">Belum dimulai</span></td>
+          <td>Volume transaksi Gelombang A+B cukup besar</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="status-chip now" style="padding:2px 8px;">now</span> sedang / segera dikerjakan</div>
+    <div class="legend-item"><span class="status-chip ready" style="padding:2px 8px;">ready</span> skema database siap dipakai</div>
+    <div class="legend-item"><span class="status-chip wait" style="padding:2px 8px;">wait</span> menunggu gerbang kualitas &amp; permintaan nyata</div>
+  </div>
+
+  <div class="callout">
+    <strong>Cara membaca peta ini dalam satu kalimat:</strong> tidak ada modul yang "dilupakan" &mdash;
+    tujuh-tujuhnya sudah punya tempat di database sejak fondasi. Yang membedakan hanya kapan
+    frontend-nya ditulis, dan urutan itu mengikuti dua aturan: (1) modul berikutnya butuh data yang
+    dihasilkan modul sebelumnya, (2) modul Gelombang B baru digarap setelah ada permintaan nyata dari
+    pengguna, bukan sekadar mengikuti kalender.
+    Rincian scope tiap modul ada di <code>plan-prioritas.md</code> (Gelombang A) dan
+    <code>plan-pengembangan-lanjutan.md</code> (Gelombang B) di folder proyek.
+  </div>
+
+  <div class="pager">
+    <a href="mindmap-model-bisnis.html">&larr; 03 &middot; Mindmap</a>
+    <a href="arsitektur-teknis.html">Lanjut: 05 &middot; Arsitektur Teknis &rarr;</a>
+  </div>
+
+  <footer>
+    Turunan dari plan-prioritas.md &amp; plan-pengembangan-lanjutan.md (disusun 2026-07-16). Status di halaman ini adalah rencana kerja, bukan pelacak progres langsung &mdash; repo <code>kmt-platform</code> belum dibuat.
+  </footer>
+
+</div>
+
+</body>
+</html>

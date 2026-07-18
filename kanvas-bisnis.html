@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>02 · Kanvas Model Bisnis — PT XXXXX Indonesia</title>
+<meta name="description" content="Business Model Canvas ekosistem digital sparepart & alat berat PT XXXXX Indonesia dengan penjelasan verbose per blok.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+    --bg: #eef2f8;
+    --surface: #ffffff;
+    --border: rgba(23, 49, 94, 0.10);
+    --text: #17233b;
+    --text-dim: #5a6b8c;
+    --primary: #1d5aa8;
+    --primary-dim: rgba(29, 90, 168, 0.08);
+    --secondary: #0e7490;
+    --secondary-dim: rgba(14, 116, 144, 0.08);
+    --tertiary: #b45309;
+    --tertiary-dim: rgba(180, 83, 9, 0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0a1424;
+      --surface: #101d33;
+      --border: rgba(148, 180, 228, 0.12);
+      --text: #dbe6f7;
+      --text-dim: #8ba3c9;
+      --primary: #6ba8e8;
+      --primary-dim: rgba(107, 168, 232, 0.14);
+      --secondary: #4ec3dd;
+      --secondary-dim: rgba(78, 195, 221, 0.10);
+      --tertiary: #e8a04c;
+      --tertiary-dim: rgba(232, 160, 76, 0.10);
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background-color: var(--bg);
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 28px 28px;
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+  }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .animate { animation: fadeUp 0.4s ease-out both; animation-delay: calc(var(--i, 0) * 0.06s); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
+  }
+  .topnav {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 12px 24px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 20;
+  }
+  .topnav .brand { font-weight: 700; font-size: 14px; }
+  .topnav .brand span { color: var(--primary); }
+  .topnav a { color: var(--text-dim); text-decoration: none; font-family: var(--font-mono); font-size: 12px; padding: 4px 8px; border-radius: 5px; }
+  .topnav a:hover { background: var(--primary-dim); color: var(--primary); }
+  .topnav a[aria-current="page"] { background: var(--primary-dim); color: var(--primary); font-weight: 500; }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 44px 24px 64px; }
+  .kicker { font-family: var(--font-mono); font-size: 12px; color: var(--secondary); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+  h1 { font-size: 34px; font-weight: 700; letter-spacing: -1px; margin-bottom: 12px; text-wrap: balance; }
+  p.prose { font-size: 14.5px; line-height: 1.75; color: var(--text-dim); margin-bottom: 12px; max-width: 780px; }
+  p.prose strong { color: var(--text); }
+
+  .canvas {
+    display: grid;
+    gap: 12px;
+    margin: 28px 0 10px;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    grid-template-areas:
+      "pa pa ka ka vp vp cr cr cs cs"
+      "pa pa kr kr vp vp ch ch cs cs"
+      "co co co co co re re re re re";
+  }
+  .block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .block.b-pa { grid-area: pa; }
+  .block.b-ka { grid-area: ka; }
+  .block.b-kr { grid-area: kr; }
+  .block.b-vp { grid-area: vp; border-color: var(--primary); box-shadow: 0 6px 20px rgba(29, 90, 168, 0.10); }
+  .block.b-cr { grid-area: cr; }
+  .block.b-ch { grid-area: ch; }
+  .block.b-cs { grid-area: cs; }
+  .block.b-co { grid-area: co; border-top: 3px solid var(--tertiary); }
+  .block.b-re { grid-area: re; border-top: 3px solid var(--secondary); }
+
+  .block h2 { font-size: 13.5px; font-weight: 700; letter-spacing: 0.2px; margin-bottom: 2px; }
+  .block .en { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; display: block; }
+  .block ul { margin: 0 0 0 16px; }
+  .block li { font-size: 12.8px; line-height: 1.6; color: var(--text-dim); margin-bottom: 5px; overflow-wrap: break-word; }
+  .block li strong { color: var(--text); font-weight: 600; }
+  .block .star { color: var(--tertiary); }
+
+  .block details { margin-top: auto; padding-top: 10px; }
+  .block summary { cursor: pointer; font-family: var(--font-mono); font-size: 11px; color: var(--primary); }
+  .block details p { font-size: 12.5px; line-height: 1.65; color: var(--text-dim); margin-top: 8px; }
+  .block details p strong { color: var(--text); }
+
+  .legend-strip { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 6px; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+  .legend-strip .sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; vertical-align: -1px; margin-right: 5px; }
+
+  .callout {
+    background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--primary);
+    border-radius: 0 10px 10px 0; padding: 16px 20px; font-size: 13.5px; line-height: 1.7;
+    color: var(--text-dim); margin: 18px 0; max-width: 900px;
+  }
+  .callout strong { color: var(--text); }
+
+  .pager { display: flex; justify-content: space-between; gap: 12px; margin-top: 36px; flex-wrap: wrap; }
+  .pager a { font-family: var(--font-mono); font-size: 12.5px; color: var(--primary); text-decoration: none; background: var(--surface); border: 1px solid var(--border); padding: 10px 16px; border-radius: 9px; }
+  .pager a:hover { border-color: var(--primary); }
+
+  footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); line-height: 1.8; }
+
+  @media (max-width: 980px) {
+    .canvas {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-areas:
+        "vp vp"
+        "cs cs"
+        "pa ka"
+        "kr ch"
+        "cr cr"
+        "co re";
+    }
+  }
+  @media (max-width: 620px) {
+    .canvas { grid-template-columns: 1fr; grid-template-areas: "vp" "cs" "pa" "ka" "kr" "ch" "cr" "co" "re"; }
+    h1 { font-size: 25px; }
+    .container { padding: 28px 14px 48px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="brand">PT XXXXX <span>/ Rancangan Umum</span></div>
+  <a href="index.html">Beranda</a>
+  <a href="analisis-pasar.html">01 &middot; Analisis Pasar</a>
+  <a href="kanvas-bisnis.html" aria-current="page">02 &middot; Kanvas Bisnis</a>
+  <a href="mindmap-model-bisnis.html">03 &middot; Mindmap</a>
+  <a href="status-modul.html">04 &middot; Status Modul</a>
+  <a href="arsitektur-teknis.html">05 &middot; Arsitektur</a>
+  <a href="pipeline-pengembangan.html">06 &middot; Pipeline</a>
+</nav>
+
+<div class="container">
+
+  <p class="kicker animate" style="--i:0">02 &middot; Kanvas Model Bisnis</p>
+  <h1 class="animate" style="--i:1">Sembilan Blok yang Menjelaskan Seluruh Bisnis dalam Satu Layar</h1>
+  <p class="prose animate" style="--i:2">
+    <strong>Cara membaca untuk yang baru pertama melihat Business Model Canvas:</strong> mulai dari tengah
+    (nilai apa yang dijanjikan), lalu ke kanan (kepada siapa dan lewat apa), lalu ke kiri
+    (apa yang dibutuhkan untuk menepati janji itu), dan tutup di baris bawah (uangnya masuk
+    dan keluar lewat mana). Setiap blok punya tautan <em>"penjelasan verbose"</em> untuk narasi presentasi.
+    Item bertanda <span style="color:var(--tertiary)">&#9733;</span> adalah pembeda utama terhadap pesaing.
+  </p>
+
+  <div class="legend-strip animate" style="--i:3">
+    <span><span class="sw" style="background:var(--primary)"></span>proposisi nilai (jantung kanvas)</span>
+    <span><span class="sw" style="background:var(--tertiary)"></span>biaya</span>
+    <span><span class="sw" style="background:var(--secondary)"></span>pendapatan</span>
+  </div>
+
+  <div class="canvas animate" style="--i:4">
+
+    <div class="block b-pa">
+      <h2>Mitra Utama</h2><span class="en">Key Partners</span>
+      <ul>
+        <li><strong>Supplier China</strong> — sumber part import bermarga kompetitif</li>
+        <li><strong>Supplier lokal &amp; resmi</strong> — pengisi Level 2 supply chain</li>
+        <li><strong>Vendor darurat</strong> — jaring pengaman saat stok kosong</li>
+        <li>Logistik / ekspedisi antar pulau</li>
+        <li>Leasing, asuransi, financing (komisi kemitraan)</li>
+        <li>Bengkel &amp; mekanik mitra (mulai T3)</li>
+      </ul>
+      <details><summary>penjelasan verbose</summary>
+        <p><strong>Narasi presentasi:</strong> tidak ada satu pemasok pun yang jadi titik tunggal kegagalan. Tiga lapis pemasok (import, lokal, darurat) dikelola dalam satu database harga — saat satu jalur macet, sistem otomatis menunjuk jalur berikutnya. Mitra keuangan dan logistik bukan biaya, melainkan sumber komisi begitu volume transaksi platform terbentuk.</p>
+      </details>
+    </div>
+
+    <div class="block b-ka">
+      <h2>Aktivitas Kunci</h2><span class="en">Key Activities</span>
+      <ul>
+        <li>Pengadaan &amp; distribusi sparepart (dua CV)</li>
+        <li><span class="star">&#9733;</span> <strong>Kurasi database part</strong> + cross-reference</li>
+        <li>Pengembangan &amp; operasi platform</li>
+        <li>Forecasting stok (lead time 2 bulan)</li>
+        <li>Marketing nasional &amp; CS</li>
+      </ul>
+      <details><summary>penjelasan verbose</summary>
+        <p>Aktivitas paling bernilai bukan menjual — melainkan <strong>mencatat</strong>: setiap transaksi memperkaya database kecocokan part, harga supplier, dan pola permintaan. Itulah aset yang tidak bisa disalin pesaing dengan uang saja; ia butuh waktu dan volume.</p>
+      </details>
+    </div>
+
+    <div class="block b-kr">
+      <h2>Sumber Daya Utama</h2><span class="en">Key Resources</span>
+      <ul>
+        <li>Stok fisik &amp; gudang dua CV</li>
+        <li><span class="star">&#9733;</span> <strong>Database part terbesar</strong>: katalog, cross-ref, kompatibilitas unit</li>
+        <li>Platform digital (monorepo satu sistem)</li>
+        <li>Dua entitas legal (rezim PPN &amp; non-PPN)</li>
+        <li>Relasi supplier bertahun-tahun</li>
+      </ul>
+      <details><summary>penjelasan verbose</summary>
+        <p>Pesaing digital tidak punya stok dan relasi; pesaing tradisional tidak punya data dan platform. <strong>Kombinasi keempatnya dalam satu tangan</strong> adalah sumber daya yang paling sulit direplikasi — dan alasan strategi masuk lewat operasional internal dulu (Tahun 1) sebelum membuka marketplace.</p>
+      </details>
+    </div>
+
+    <div class="block b-vp">
+      <h2>Proposisi Nilai</h2><span class="en">Value Propositions</span>
+      <ul>
+        <li><span class="star">&#9733;</span> <strong>"Tidak pernah kehilangan penjualan karena stok kosong"</strong> — supply chain 3 level</li>
+        <li><span class="star">&#9733;</span> <strong>Part yang pasti cocok</strong> — cross-reference nomor part &amp; kompatibilitas unit</li>
+        <li>Transparansi harga, stok, dan histori servis</li>
+        <li>Satu pintu: part + mekanik + rental + financing</li>
+        <li>Harga kompetitif via jalur import langsung</li>
+        <li>Riwayat perawatan armada tersimpan rapi (nilai jual kembali unit lebih tinggi)</li>
+      </ul>
+      <details><summary>penjelasan verbose</summary>
+        <p><strong>Untuk orang awam:</strong> bayangkan mesin proyek berhenti karena satu seal seharga 200 ribu — kerugiannya puluhan juta per hari. Janji kami sederhana: part yang benar, tersedia, dengan harga jelas, secepat mungkin. <strong>Untuk teknisi:</strong> janji itu ditopang tiga mekanisme yang bisa diaudit — ledger stok, database cross-reference, dan fallback otomatis ke supplier alternatif.</p>
+      </details>
+    </div>
+
+    <div class="block b-cr">
+      <h2>Hubungan Pelanggan</h2><span class="en">Customer Relationships</span>
+      <ul>
+        <li>Akun dengan riwayat pembelian &amp; servis per unit</li>
+        <li>CS nasional (dikelola PT)</li>
+        <li>Garansi &amp; kejelasan invoice</li>
+        <li>Subscription dashboard untuk pelanggan korporat</li>
+      </ul>
+      <details><summary>penjelasan verbose</summary>
+        <p>Relasi personal milik CV tidak dibuang — didigitalkan. Riwayat servis per unit menciptakan <strong>switching cost</strong> yang sehat: makin lama memakai platform, makin berharga datanya bagi pelanggan sendiri.</p>
+      </details>
+    </div>
+
+    <div class="block b-ch">
+      <h2>Saluran</h2><span class="en">Channels</span>
+      <ul>
+        <li>Penjualan langsung dua CV (berjalan hari ini)</li>
+        <li>Marketplace web (T2) &amp; mobile apps</li>
+        <li>Sales korporat (CV PUM)</li>
+        <li>Kanal darurat: WhatsApp terintegrasi CS</li>
+      </ul>
+      <details><summary>penjelasan verbose</summary>
+        <p>Transisi kanal dibuat bertahap: pelanggan lama tetap bisa memesan lewat kebiasaan lama (telepon/WA) — pesanan itu tetap dicatat di sistem yang sama, sehingga data tidak bocor ke luar platform meski pelanggan belum berpindah kanal.</p>
+      </details>
+    </div>
+
+    <div class="block b-cs">
+      <h2>Segmen Pelanggan</h2><span class="en">Customer Segments</span>
+      <ul>
+        <li><strong>Perusahaan tambang</strong> (kontributor volume utama)</li>
+        <li><strong>Kontraktor</strong> konstruksi &amp; infrastruktur</li>
+        <li>Perkebunan &amp; food estate</li>
+        <li>Perusahaan rental alat berat</li>
+        <li>Workshop / bengkel &amp; mekanik</li>
+        <li>Pemilik unit perorangan (end user)</li>
+      </ul>
+      <details><summary>penjelasan verbose</summary>
+        <p>Segmen diurut dari nilai transaksi terbesar. Dua segmen terbawah (bengkel, mekanik, end user) justru paling dilayani buruk oleh rantai pasok hari ini — merekalah pengguna awal marketplace yang paling mungkin, sementara segmen korporat masuk lewat relasi sales CV yang sudah ada.</p>
+      </details>
+    </div>
+
+    <div class="block b-co">
+      <h2>Struktur Biaya</h2><span class="en">Cost Structure</span>
+      <ul>
+        <li><strong>HPP &amp; modal stok</strong> — komponen terbesar; diikat strategi safety stock vs dead stock</li>
+        <li>Gudang, logistik, operasional dua CV</li>
+        <li><strong>Pengembangan platform</strong> — efisien: satu developer, satu monorepo, infrastruktur VPS sederhana</li>
+        <li>Marketing nasional &amp; customer service (PT)</li>
+        <li>Biaya kepatuhan: pajak dua rezim, audit, legal</li>
+      </ul>
+      <details><summary>penjelasan verbose</summary>
+        <p>Struktur biaya platform sengaja dijaga tipis (arsitektur monolitik sederhana, tanpa tim besar) supaya titik impas lapisan digital tidak bergantung pada pendanaan eksternal — pendapatan CV yang berjalan menghidupi pembangunan platform.</p>
+      </details>
+    </div>
+
+    <div class="block b-re">
+      <h2>Arus Pendapatan</h2><span class="en">Revenue Streams</span>
+      <ul>
+        <li><strong>Hari ini:</strong> margin part import (KMT), margin part lokal &amp; proyek korporat (PUM)</li>
+        <li><strong>Gelombang A (prioritas):</strong> fee marketplace sparepart; subscription vendor/bengkel; iklan supplier</li>
+        <li><strong>Gelombang B (backlog terencana):</strong> fee jasa mekanik; maintenance software; fee rental; dashboard premium &amp; data analytics; komisi financing, asuransi, leasing, logistik</li>
+      </ul>
+      <details><summary>penjelasan verbose</summary>
+        <p>Empat belas sumber pendapatan tidak dibuka serentak — tiap tahap roadmap menambah lapisan baru di atas lapisan yang sudah terbukti (lihat grafik komposisi di halaman <a href="analisis-pasar.html" style="color:var(--primary)">Analisis Pasar</a>). Prinsipnya: <strong>pendapatan platform mengikuti volume transaksi, bukan mendahuluinya.</strong></p>
+      </details>
+    </div>
+
+  </div>
+
+  <div class="callout">
+    <strong>Keputusan yang sudah dikunci dari kanvas ini:</strong> (1) PT tidak mengambil alih penjualan CV — ia memonetisasi lapisan platform;
+    (2) database part &amp; cross-reference diperlakukan sebagai aset inti, bukan fitur; (3) semua pendapatan platform bersifat menyusul volume —
+    tidak ada asumsi "bangun dulu, semoga ramai".
+  </div>
+
+  <div class="pager">
+    <a href="analisis-pasar.html">&larr; 01 &middot; Analisis Pasar</a>
+    <a href="mindmap-model-bisnis.html">Lanjut: 03 &middot; Mindmap &rarr;</a>
+  </div>
+
+  <footer>
+    Kanvas mengikuti kerangka Business Model Canvas (Osterwalder). Isi disarikan dari Business Plan PT XXXXX 2027 (CV KMT &amp; CV PUM) dan keputusan sesi perancangan 2026-07-16.
+  </footer>
+
+</div>
+
+</body>
+</html>
